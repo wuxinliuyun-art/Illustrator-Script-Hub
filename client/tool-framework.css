@@ -1,0 +1,45 @@
+.tool-view { display:none; }
+.tool-view.active { display:block; }
+.panel-btn { width:44px; min-width:44px; border:1px solid #4e4e4e; border-left:0; border-radius:0; background:#353535; color:#6da9ee; cursor:pointer; font-size:10px; }
+.panel-btn:hover { background:#454545; color:#fff; }
+.script-item.has-tool .btn-row .btn { border-radius:4px 0 0 4px; }
+.script-item.has-tool.expanded .btn-row .btn { border-radius:4px 0 0 0; }
+.tool-toolbar { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px; }
+.tool-btn { border:1px solid #555; background:#3e3e3e; color:#eee; padding:6px 9px; border-radius:4px; cursor:pointer; font-size:11px; }
+.tool-btn:hover { border-color:#1473e6; }
+.tool-btn.primary { background:#1473e6; border-color:#1473e6; }
+.tool-btn.danger { color:#ff8d8d; }
+.tool-panel { border:1px solid #494949; border-radius:5px; padding:7px; margin-bottom:6px; background:#2b2b2b; }
+.tool-row { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+.tool-row:last-child { margin-bottom:0; }
+.tool-row label { min-width:58px; color:#bbb; font-size:11px; }
+.tool-input, .tool-select { min-width:0; flex:1; background:#1f1f1f; color:#eee; border:1px solid #555; border-radius:3px; padding:5px; font-size:11px; }
+.tool-number { width:70px; flex:none; }
+.tool-status { white-space:pre-wrap; font-size:10px; color:#aaa; padding:7px; border-radius:4px; background:#1d1d1d; margin-bottom:8px; }
+.tool-status.error { color:#ff8d8d; border:1px solid #7a3333; }
+.tool-status:empty { display:none; }
+.tool-usage { margin-bottom:6px; padding:6px 7px; border-left:2px solid #1473e6; border-radius:3px; background:#1d2733; color:#6da9ee; font-size:10px; line-height:1.45; }
+.cmf-card { border:1px solid #4b4b4b; border-radius:5px; padding:8px; margin-bottom:8px; background:#292929; }
+.cmf-card-title { display:flex; justify-content:space-between; color:#ddd; font-size:11px; margin-bottom:7px; }
+.cmf-line { display:grid; grid-template-columns:minmax(75px, 0.8fr) minmax(95px, 1.2fr) auto; gap:5px; margin-bottom:5px; }
+.cmf-line-actions { display:flex; gap:2px; }
+.cmf-mini { padding:3px 5px; min-width:25px; }
+.cmf-empty { color:#777; text-align:center; border:1px dashed #555; border-radius:4px; padding:18px 8px; font-size:11px; }
+.cmf-generation-summary { color:#bbb; background:#252525; border:1px solid #444; border-radius:4px; margin-bottom:6px; padding:9px; font-size:11px; line-height:1.45; }
+.cmf-settings { display:none; }
+.cmf-settings.active { display:block; }
+.cmf-editor.hidden { display:none; }
+.dict-head { display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:5px; }
+.dict-list { display:grid; gap:4px; }
+.dict-item { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:5px; padding:5px 6px; border:1px solid #444; border-radius:5px; background:#262626; }
+.dict-summary { min-width:0; }
+.dict-summary strong { display:block; font-size:11px; color:#eee; }
+.dict-summary span { display:block; margin-top:2px; overflow:hidden; color:#888; font-size:10px; white-space:nowrap; text-overflow:ellipsis; }
+.dict-actions { display:flex; gap:2px; }
+.dict-actions .tool-btn { padding:3px 5px; font-size:10px; }
+.dict-actions .tool-btn:disabled { opacity:.35; cursor:default; }
+.dict-editor { display:grid; gap:4px; margin-top:6px; padding:7px; border:1px solid #555; border-radius:5px; background:#222; }
+.dict-empty { padding:14px 6px; color:#777; font-size:10px; text-align:center; border:1px dashed #4b4b4b; border-radius:5px; }
+.dict-values { min-height:42px; resize:vertical; }
+.template-item { display:flex; gap:5px; align-items:center; margin-top:5px; }
+@media (max-width: 280px) { .cmf-line { grid-template-columns:1fr; } .cmf-line-actions { justify-content:flex-end; } }

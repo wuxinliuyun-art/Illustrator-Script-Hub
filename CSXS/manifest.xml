@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtensionManifest Version="7.0" ExtensionBundleId="com.mytools.scriptrunner" ExtensionBundleVersion="1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <ExtensionList>
+        <!-- 插件唯一标识符 -->
+        <Extension Id="com.mytools.scriptrunner" Version="1.0.0" />
+    </ExtensionList>
+    <ExecutionEnvironment>
+        <HostList>
+            <!-- 兼容 Illustrator CC 2015 (19.0) 到 2026+ (99.0) 宽泛版本 -->
+            <Host Name="ILST" Version="[19.0,99.0]" />
+        </HostList>
+        <LocaleList>
+            <Locale Code="All" />
+        </LocaleList>
+        <RequiredRuntimeList>
+            <RequiredRuntime Name="CSXS" Version="7.0" />
+        </RequiredRuntimeList>
+    </ExecutionEnvironment>
+    <DispatchInfoList>
+        <Extension Id="com.mytools.scriptrunner">
+            <DispatchInfo>
+                <Resources>
+                    <MainPath>./client/index.html</MainPath>
+                    <ScriptPath>./host/index.jsx</ScriptPath>
+                    <CEFCommandLine>
+                        <Parameter>--enable-nodejs</Parameter>
+                    </CEFCommandLine>
+                </Resources>
+                <Lifecycle>
+                    <AutoVisible>true</AutoVisible>
+                </Lifecycle>
+                <UI>
+                    <Type>Panel</Type>
+                    <Menu>通用 JSX 脚本管理器</Menu>
+                    <Geometry>
+                        <Size>
+                            <Width>300</Width>
+                            <Height>700</Height>
+                        </Size>
+                        <MinSize>
+                            <Width>200</Width>
+                            <Height>400</Height>
+                        </MinSize>
+                        <!-- 不设 MaxSize，用户可自由拖拽面板边缘调整到任意大小 -->
+                    </Geometry>
+                </UI>
+            </DispatchInfo>
+        </Extension>
+    </DispatchInfoList>
+</ExtensionManifest>

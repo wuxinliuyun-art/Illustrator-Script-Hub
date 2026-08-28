@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>脚本管理器</title>
+    <link rel="stylesheet" href="tool-framework.css">
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        body {
+            background-color: #232323;
+            color: #E2E2E2;
+            font-family: "Segoe UI", sans-serif;
+            padding: 10px;
+            padding-bottom: 24px; /* 给底部缩放手柄留空间 */
+            user-select: none;
+            box-sizing: border-box;
+        }
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        /* 头部和刷新按钮样式 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #3e3e3e;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 11px;
+            color: #888888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+        .lang-btn {
+            background: none;
+            border: 1px solid #555;
+            color: #1473E6;
+            cursor: pointer;
+            font-size: 10px;
+            padding: 2px 5px;
+            margin-left: 6px;
+            border-radius: 3px;
+        }
+        .refresh-btn {
+            background: none;
+            border: none;
+            color: #1473E6;
+            cursor: pointer;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .refresh-btn:hover {
+            background-color: #2D2D2D;
+            color: #2188FF;
+        }
+        /* 动态生成的按钮列表 */
+        .btn-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        /* 空白文件夹提示 */
+        .empty-state {
+            text-align: center;
+            font-size: 11px;
+            color: #777777;
+            padding: 30px 10px;
+            line-height: 1.6;
+            border: 1px dashed #3E3E3E;
+            border-radius: 4px;
+        }
+        /* === 每个脚本项的容器 === */
+        .script-item {
+            display: flex;
+            flex-direction: column;
+            cursor: grab;
+            transition: opacity 0.15s;
+        }
+        .script-item.dragging {
+            opacity: 0.35;
+            cursor: grabbing;
+        }
+        .script-item.drag-over {
+            box-shadow: 0 -2px 0 0 #1473E6;
+        }
+        /* 按钮行：颜色条 + 脚本按钮 + 说明切换按钮 */
+        .btn-row {
+            display: flex;
+            gap: 0;
+            align-items: stretch;
+        }
+        /* 颜色标记条 */
+        .color-strip {
+            width: 6px;
+            min-width: 6px;
+            background-color: #555;
+            border-radius: 4px 0 0 4px;
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.15s;
+        }
+        .color-strip:hover {
+            opacity: 0.7;
+            outline: 1px solid rgba(255,255,255,0.2);
+            outline-offset: -1px;
+        }
+        .btn-row .btn {
+            flex: 1;
+            background-color: #3E3E3E;
+            color: #E2E2E2;
+            border: 1px solid #4E4E4E;
+            padding: 8px 10px;
+            border-radius: 4px 0 0 4px;
+            font-size: 12px;
+            text-align: left;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .btn-row .btn:hover {
+            background-color: #4E4E4E;
+            border-color: #1473E6;
+        }
+        .btn-row .btn:active {
+            background-color: #2D2D2D;
+        }
+        /* 说明切换小按钮 */
+        .info-btn {
+            width: 30px;
+            min-width: 30px;
+            background-color: #3E3E3E;
+            color: #999;
+            border: 1px solid #4E4E4E;
+            border-left: 1px solid #555;
+            border-radius: 0 4px 4px 0;
+            font-size: 12px;
+            cursor: pointer;
+            text-align: center;
+            padding: 0;
+            transition: background 0.15s, color 0.15s;
+        }
+        .info-btn:hover {
+            background-color: #4E4E4E;
+            color: #1473E6;
+        }
+        .info-btn.active {
+            color: #1473E6;
+            background-color: #2D2D2D;
+        }
+        /* 按钮行悬浮时统一样式 */
+        .btn-row:hover .btn {
+            border-color: #1473E6;
+        }
+        .btn-row:hover .info-btn {
+            border-color: #1473E6;
+        }
+        /* 展开时按钮下圆角变直角 */
+        .script-item.expanded .btn-row .btn {
+            border-radius: 4px 0 0 0;
+            border-bottom-color: transparent;
+        }
+        .script-item.expanded .btn-row .info-btn {
+            border-radius: 0 4px 0 0;
+            border-bottom-color: transparent;
+        }
+        /* 每个按钮下方展开的说明区域 */
+        .item-desc {
+            display: none;
+            background: #1A1A1A;
+            border: 1px solid #1473E6;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            padding: 6px 10px;
+            margin: 0 0 2px 0;
+            font-size: 10px;
+            color: #BBBBBB;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        /* 展开时显示说明 */
+        .script-item.expanded .item-desc {
+            display: block;
+        }
+        /* 说明区滚动条美化 */
+        .item-desc::-webkit-scrollbar {
+            width: 4px;
+        }
+        .item-desc::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 2px;
+        }
+        /* 无说明时的样式 */
+        .item-desc .tip-empty {
+            color: #666;
+            font-style: italic;
+        }
+        /* === 颜色预设面板 === */
+        .color-palette {
+            position: fixed;
+            display: flex;
+            gap: 4px;
+            background: #1A1A1A;
+            border: 1px solid #4E4E4E;
+            border-radius: 4px;
+            padding: 5px 7px;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
+        .color-swatch {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: transform 0.1s, border-color 0.1s;
+        }
+        .color-swatch:hover {
+            transform: scale(1.3);
+            border-color: #fff;
+        }
+        /* === 自定义缩放手柄（右下角拖拽调整窗口大小） === */
+        .resize-handle {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            cursor: nwse-resize;
+            z-index: 9999;
+            opacity: 0.4;
+            transition: opacity 0.15s;
+        }
+        .resize-handle::before {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 0 12px 12px;
+            border-color: transparent transparent #999 transparent;
+        }
+        .resize-handle:hover {
+            opacity: 1;
+        }
+        .resize-handle:hover::before {
+            border-color: transparent transparent #1473E6 transparent;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <span><button class="lang-btn" id="lang-btn" type="button">中 / EN</button><span class="title"></span></span>
+        <span style="display:flex;gap:4px;">
+            <button class="refresh-btn" id="folder-btn" title="打开脚本文件夹">📁 文件夹</button>
+            <button class="refresh-btn" id="refresh-btn" title="刷新脚本列表">🔄 刷新</button>
+        </span>
+    </div>
+
+    <!-- 动态渲染容器 -->
+    <div class="tool-view active" id="scripts-view">
+        <div class="btn-list" id="button-container"></div>
+    </div>
+    <div id="tool-root"></div>
+
+    <!-- 右下角缩放手柄 -->
+    <div class="resize-handle" id="resize-handle" title="拖拽调整窗口大小"></div>
+
+    <!-- 颜色预设面板（点击颜色条时弹出） -->
+    <div class="color-palette" id="color-palette" style="display:none;">
+        <div class="color-swatch" data-color="#E05555" style="background:#E05555;" title="红色"></div>
+        <div class="color-swatch" data-color="#E08833" style="background:#E08833;" title="橙色"></div>
+        <div class="color-swatch" data-color="#CCBB44" style="background:#CCBB44;" title="黄色"></div>
+        <div class="color-swatch" data-color="#55AA55" style="background:#55AA55;" title="绿色"></div>
+        <div class="color-swatch" data-color="#4488CC" style="background:#4488CC;" title="蓝色"></div>
+        <div class="color-swatch" data-color="#8855AA" style="background:#8855AA;" title="紫色"></div>
+        <div class="color-swatch" data-color="#555555" style="background:#555;" title="默认灰色"></div>
+    </div>
+
+    <script src="CSInterface.js"></script>
+    <script src="tool-framework.js"></script>
+    <script src="tool-widgets.js"></script>
+    <script src="cmf-tool.js"></script>
+    <script>
+        // ============================================================
+        // 通用脚本管理器 - 前端扫描引擎 (v2 健壮版)
+        // 支持中文路径、延迟初始化、面板内调试反馈
+        // ============================================================
+
+        // ---- 兜底错误展示（万一 require 都挂掉，面板也能提示原因） ----
+        function showStatus(msg, isError) {
+            var el = document.getElementById('button-container');
+            var color = isError ? '#E05555' : '#999';
+            el.innerHTML = '<div class="empty-state" style="color:' + color + ';font-size:10px;white-space:pre-wrap;word-break:break-all;text-align:left;">' + msg + '</div>';
+        }
+
+        var fs, path, csInterface, extensionPath, scriptsDir;
+        var panelLanguage = localStorage.getItem('sr_panel_language') || 'zh';
+        var languageText = {
+            zh: {title:'脚本管理器', folder:'📁 文件夹', refresh:'🔄 刷新', folderTitle:'打开脚本文件夹', refreshTitle:'刷新脚本列表', panel:'面板', panelTitle:'打开此 JSX 对应的配置面板', infoTitle:'查看使用说明', empty:'📭 未发现 .jsx 脚本', emptyTip:'请将 .jsx 文件放入 scripts 文件夹（支持子文件夹嵌套）'},
+            en: {title:'SCRIPT HUB', folder:'📁 Folder', refresh:'🔄 Refresh', folderTitle:'Open scripts folder', refreshTitle:'Refresh script list', panel:'Panel', panelTitle:'Open the configuration panel for this JSX', infoTitle:'View usage notes', empty:'📭 No .jsx scripts found', emptyTip:'Put .jsx files into the scripts folder (subfolders supported)'}
+        };
+        function t(key) { return languageText[panelLanguage][key]; }
+        function applyLanguage() {
+            document.querySelector('.title').textContent = t('title');
+            document.getElementById('folder-btn').textContent = t('folder');
+            document.getElementById('folder-btn').title = t('folderTitle');
+            document.getElementById('refresh-btn').textContent = t('refresh');
+            document.getElementById('refresh-btn').title = t('refreshTitle');
+            document.getElementById('lang-btn').textContent = panelLanguage === 'zh' ? '中 / EN' : 'EN / 中';
+        }
+        document.getElementById('lang-btn').addEventListener('click', function () {
+            panelLanguage = panelLanguage === 'zh' ? 'en' : 'zh';
+            localStorage.setItem('sr_panel_language', panelLanguage);
+            applyLanguage();
+            loadUserScripts();
+        });
+        applyLanguage();
+        try {
+            fs = require('fs');
+            path = require('path');
+            csInterface = new CSInterface();
+        } catch (e) {
+            showStatus('❌ Node.js 引擎未启用！\n请在 manifest.xml 的 Resources 中\n添加 <CEFCommandLine>\n  <Parameter>--enable-nodejs</Parameter>\n</CEFCommandLine>\n\n原始错误: ' + e.message, true);
+            throw e; // 停止后续执行
+        }
+
+        // 1. 获取当前插件根目录的绝对路径
+        extensionPath = csInterface.getSystemPath(SystemPath.EXTENSION);
+        // 2. 拼接出 scripts 文件夹路径
+        scriptsDir = path.join(extensionPath, 'scripts');
+
+        // ---- 确保 scripts 文件夹存在 ----
+        if (!fs.existsSync(scriptsDir)) {
+            try {
+                fs.mkdirSync(scriptsDir);
+            } catch (e) {
+                showStatus('❌ 无法创建 scripts 文件夹\n' + scriptsDir + '\n\n' + e.toString(), true);
+            }
+        }
+
+        // ---- 从脚本文件头部提取使用说明（第一个 /** ... */ 或 /* ... */ 注释块） ----
+        function extractHeaderComment(absPath) {
+            try {
+                // 只读文件头部 4KB，足够覆盖绝大多数头部注释
+                var fd = fs.openSync(absPath, 'r');
+                var buf = new Buffer(4096);
+                var bytesRead = fs.readSync(fd, buf, 0, 4096, 0);
+                fs.closeSync(fd);
+                var head = buf.toString('utf8', 0, bytesRead);
+                // 匹配第一个块注释 /* ... */（支持 /** 开头）
+                var match = head.match(/\/\*[\s\S]*?\*\//);
+                if (match) {
+                    // 去掉注释标记，清理每行前面的 * 和空白
+                    var raw = match[0]
+                        .replace(/^\/\*\*?\s*[\r\n]+/, '')   // 去掉开头的 /**
+                        .replace(/[\r\n]+\s*\*\/\s*$/, '')    // 去掉结尾的 */
+                        .replace(/^[ \t]*\*[ \t]?/gm, '')     // 去掉每行前面的 *
+                        .trim();
+                    return raw;
+                }
+            } catch (e) {
+                // 读文件失败则静默跳过
+            }
+            return '';
+        }
+
+        // ---- 递归扫描：遍历 scripts 下所有子文件夹，收集所有 .jsx / .js ----
+        function walkDir(dir, baseDir) {
+            var results = [];
+            if (!fs.existsSync(dir)) return results;
+
+            var entries = fs.readdirSync(dir);
+            entries.forEach(function(entry) {
+                var fullPath = path.join(dir, entry);
+                var stat = fs.statSync(fullPath);
+                if (stat.isDirectory()) {
+                    // 递归进入子文件夹
+                    results = results.concat(walkDir(fullPath, baseDir));
+                } else {
+                    var ext = path.extname(entry).toLowerCase();
+                    if (ext === '.jsx' || ext === '.js') {
+                        var desc = extractHeaderComment(fullPath);
+                        results.push({
+                            absPath: fullPath,                                    // 绝对路径
+                            relPath: path.relative(baseDir, fullPath),            // 相对路径
+                            desc: desc                                            // 头部注释（使用说明）
+                        });
+                    }
+                }
+            });
+            return results;
+        }
+
+        // ---- 配置文件读写（保存排序和颜色） ----
+        // 优先用 localStorage（CEP 内置的 Chromium 持久存储，刷新不丢），
+        // 同步写入 scripts/_panel_config.json 作为备份（跨插件版本保留）。
+        var CONFIG_KEY = 'sr_panel_config';
+        var configPath = path.join(scriptsDir, '_panel_config.json');
+
+        function loadConfig() {
+            var cfg = { order: [], colors: {} };
+            // 1) 优先读 localStorage
+            try {
+                var raw = localStorage.getItem(CONFIG_KEY);
+                if (raw) {
+                    var parsed = JSON.parse(raw);
+                    if (parsed.order) cfg.order = parsed.order;
+                    if (parsed.colors) cfg.colors = parsed.colors;
+                }
+            } catch (e) {}
+            // 2) 如果 localStorage 为空，回退读文件
+            if (cfg.order.length === 0 && Object.keys(cfg.colors).length === 0) {
+                try {
+                    if (fs.existsSync(configPath)) {
+                        var fileRaw = fs.readFileSync(configPath, 'utf8');
+                        var fileCfg = JSON.parse(fileRaw);
+                        if (fileCfg.order) cfg.order = fileCfg.order;
+                        if (fileCfg.colors) cfg.colors = fileCfg.colors;
+                    }
+                } catch (e) {}
+            }
+            return cfg;
+        }
+
+        function saveConfig(config) {
+            // 主存储：localStorage（最可靠）
+            try {
+                localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+            } catch (e) {}
+            // 备份：写入文件
+            try {
+                fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
+            } catch (e) {}
+        }
+
+        // 按配置排序：先按 order 排，未在 order 中的放最后
+        function sortByConfig(scriptFiles, config) {
+            var order = config.order || [];
+            var colors = config.colors || {};
+            // 为每个文件附加颜色
+            scriptFiles.forEach(function(f) {
+                f.color = colors[f.relPath] || '#555';
+            });
+            // 排序
+            scriptFiles.sort(function(a, b) {
+                var ia = order.indexOf(a.relPath);
+                var ib = order.indexOf(b.relPath);
+                if (ia === -1 && ib === -1) return 0;
+                if (ia === -1) return 1;
+                if (ib === -1) return -1;
+                return ia - ib;
+            });
+            return scriptFiles;
+        }
+
+        // 从当前 DOM 顺序生成新的 order 并保存
+        function saveCurrentOrder() {
+            var items = document.querySelectorAll('.script-item');
+            var order = [];
+            items.forEach(function(item) {
+                var relPath = item.getAttribute('data-relpath');
+                if (relPath) order.push(relPath);
+            });
+            var config = loadConfig();
+            config.order = order;
+            saveConfig(config);
+        }
+
+        // 保存单个颜色
+        function saveColor(relPath, color) {
+            var config = loadConfig();
+            config.colors = config.colors || {};
+            config.colors[relPath] = color;
+            saveConfig(config);
+        }
+
+        // ---- 颜色预设面板逻辑 ----
+        var colorPalette = document.getElementById('color-palette');
+        var currentColorTarget = null;
+        var currentColorStrip = null;
+
+        // 点击色块：应用颜色、保存、关闭面板
+        colorPalette.addEventListener('click', function(e) {
+            var swatch = e.target.closest('.color-swatch');
+            if (!swatch || !currentColorTarget) return;
+            var color = swatch.getAttribute('data-color');
+            if (currentColorStrip) {
+                currentColorStrip.style.backgroundColor = color;
+            }
+            saveColor(currentColorTarget, color);
+            hidePalette();
+        });
+
+        function showPalette(strip, relPath) {
+            currentColorTarget = relPath;
+            currentColorStrip = strip;
+            var rect = strip.getBoundingClientRect();
+            colorPalette.style.left = (rect.right + 4) + 'px';
+            colorPalette.style.top = rect.top + 'px';
+            // 防溢出：如果右侧空间不够，放到左侧
+            if (rect.right + 130 > window.innerWidth) {
+                colorPalette.style.left = (rect.left - 130) + 'px';
+            }
+            colorPalette.style.display = 'flex';
+        }
+
+        function hidePalette() {
+            colorPalette.style.display = 'none';
+            currentColorTarget = null;
+            currentColorStrip = null;
+        }
+
+        // 点击面板外任意位置关闭色板
+        document.addEventListener('click', function(e) {
+            if (colorPalette.style.display !== 'none' && !colorPalette.contains(e.target)) {
+                hidePalette();
+            }
+        });
+
+        // ---- 拖拽排序逻辑 ----
+        var draggedItem = null;
+
+        function handleDragStart(e) {
+            draggedItem = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.getAttribute('data-relpath'));
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            // 清除所有 drag-over 标记
+            var all = document.querySelectorAll('.script-item');
+            all.forEach(function(el) { el.classList.remove('drag-over'); });
+            draggedItem = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (this !== draggedItem) {
+                // 清除之前的标记
+                var all = document.querySelectorAll('.script-item.drag-over');
+                all.forEach(function(el) { el.classList.remove('drag-over'); });
+                this.classList.add('drag-over');
+            }
+        }
+
+        function handleDrop(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            if (draggedItem && draggedItem !== this) {
+                var container = document.getElementById('button-container');
+                // 判断拖到目标上方还是下方（基于鼠标位置）
+                var rect = this.getBoundingClientRect();
+                var midY = rect.top + rect.height / 2;
+                if (e.clientY < midY) {
+                    container.insertBefore(draggedItem, this);
+                } else {
+                    container.insertBefore(draggedItem, this.nextSibling);
+                }
+                saveCurrentOrder();
+            }
+            return false;
+        }
+
+        // ---- 核心：扫描 scripts 文件夹（含子目录），动态生成按钮 ----
+        function loadUserScripts() {
+            var container = document.getElementById('button-container');
+            container.innerHTML = ''; // 清空
+
+            // === 第 0 关：检查 scripts 文件夹是否存在 ===
+            if (!fs.existsSync(scriptsDir)) {
+                container.innerHTML = '<div class="empty-state" style="color:#E05555;">❌ scripts 文件夹不存在<br><span style="font-size:9px;word-break:break-all;">' + scriptsDir + '</span></div>';
+                return;
+            }
+
+            // === 第 1 关：递归收集所有脚本文件（含头部注释） ===
+            var scriptFiles;
+            try {
+                scriptFiles = walkDir(scriptsDir, scriptsDir);
+            } catch (e) {
+                container.innerHTML = '<div class="empty-state" style="color:#E05555;">❌ 读取文件夹失败<br><span style="font-size:9px;">' + e.toString() + '</span></div>';
+                return;
+            }
+
+            // === 第 2 关：没有脚本文件时给出提示 ===
+            if (scriptFiles.length === 0) {
+                container.innerHTML = '<div class="empty-state">' + t('empty') + '<br><span style="font-size:9px;color:#555;">' + t('emptyTip') + '</span></div>';
+                return;
+            }
+
+            // === 第 2.5 关：加载配置，排序，应用颜色 ===
+            var config = loadConfig();
+            scriptFiles = sortByConfig(scriptFiles, config);
+
+            // === 第 3 关：为每个脚本生成【颜色条 + 按钮行 + 下方说明】 ===
+            scriptFiles.forEach(function(item) {
+                // 显示名处理
+                var relWithoutExt = item.relPath.replace(/\.(jsx|js)$/i, '');
+                var displayName = relWithoutExt.replace(/[\\\/]/g, ' ▸ ');
+
+                // --- 外层容器（可拖拽） ---
+                var wrapper = document.createElement('div');
+                wrapper.className = 'script-item';
+                if (window.ScriptRunnerTools && window.ScriptRunnerTools.handlesScript(item.relPath)) wrapper.classList.add('has-tool');
+                wrapper.setAttribute('draggable', 'true');
+                wrapper.setAttribute('data-relpath', item.relPath);
+                wrapper.addEventListener('dragstart', handleDragStart);
+                wrapper.addEventListener('dragend', handleDragEnd);
+                wrapper.addEventListener('dragover', handleDragOver);
+                wrapper.addEventListener('drop', handleDrop);
+
+                // --- 按钮行 ---
+                var btnRow = document.createElement('div');
+                btnRow.className = 'btn-row';
+
+                // --- 颜色标记条 ---
+                var colorStrip = document.createElement('div');
+                colorStrip.className = 'color-strip';
+                colorStrip.style.backgroundColor = item.color || '#555';
+                colorStrip.setAttribute('data-relpath', item.relPath);
+                colorStrip.title = '点击设置颜色';
+                colorStrip.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    showPalette(colorStrip, item.relPath);
+                });
+
+                // --- 脚本执行按钮 ---
+                var btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.innerText = displayName;
+                btn.title = '点击执行: ' + displayName + ' | 拖拽可排序';
+                // 子文件夹内的脚本保留左侧彩色边框（颜色条替代了它）
+                if (relWithoutExt.indexOf('/') !== -1 || relWithoutExt.indexOf('\\') !== -1) {
+                    btn.style.fontSize = '11px';
+                }
+                btn.addEventListener('click', function() {
+                    var fullPath = item.absPath.replace(/\\/g, '/');
+                    csInterface.evalScript('runDynamicJSXFile(' + JSON.stringify(fullPath) + ')');
+                });
+
+                // --- 参数化工具的 CEP 面板入口 ---
+                var panelBtn = null;
+                if (window.ScriptRunnerTools && window.ScriptRunnerTools.handlesScript(item.relPath)) {
+                    panelBtn = document.createElement('button');
+                    panelBtn.className = 'panel-btn';
+                    panelBtn.innerText = t('panel');
+                    panelBtn.title = t('panelTitle');
+                    panelBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        window.ScriptRunnerTools.openByScript(item.relPath);
+                    });
+                }
+
+                // --- 说明切换小按钮 ---
+                var infoBtn = document.createElement('button');
+                infoBtn.className = 'info-btn';
+                infoBtn.innerText = 'ℹ';
+                infoBtn.title = t('infoTitle');
+                if (item.desc) {
+                    infoBtn.style.color = '#AAA';
+                }
+
+                // --- 下方说明区 ---
+                var descDiv = document.createElement('div');
+                descDiv.className = 'item-desc';
+                if (!item.desc) {
+                    descDiv.innerHTML = '<span class="tip-empty">（暂无使用说明，建议在脚本顶部添加 <code>/** 说明 */</code>）</span>';
+                } else {
+                    descDiv.textContent = item.desc;
+                }
+
+                // --- 点击 ℹ 按钮切换说明显隐 ---
+                infoBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (wrapper.classList.contains('expanded')) {
+                        wrapper.classList.remove('expanded');
+                        infoBtn.classList.remove('active');
+                    } else {
+                        wrapper.classList.add('expanded');
+                        infoBtn.classList.add('active');
+                    }
+                });
+
+                // --- 组装 ---
+                btnRow.appendChild(colorStrip);
+                btnRow.appendChild(btn);
+                if (panelBtn) btnRow.appendChild(panelBtn);
+                btnRow.appendChild(infoBtn);
+                wrapper.appendChild(btnRow);
+                wrapper.appendChild(descDiv);
+                container.appendChild(wrapper);
+            });
+        }
+
+        // ---- 打开脚本文件夹 ----
+        document.getElementById('folder-btn').addEventListener('click', function() {
+            // 用 Node.js child_process 在资源管理器中打开 scripts 文件夹
+            try {
+                var cp = require('child_process');
+                cp.exec('explorer "' + scriptsDir + '"');
+            } catch (e) {
+                // 降级方案：尝试用 csInterface 打开
+                csInterface.openURLInDefaultBrowser('file:///' + scriptsDir.replace(/\\/g, '/'));
+            }
+        });
+
+        // ---- 事件绑定 ----
+        document.getElementById('refresh-btn').addEventListener('click', loadUserScripts);
+
+        // ---- 首次启动：延迟 300ms 确保 CEP / Node.js 引擎完全就绪 ----
+        setTimeout(function () {
+            ScriptRunnerTools.init({
+                fs: fs,
+                path: path,
+                csInterface: csInterface,
+                extensionPath: extensionPath,
+                userDataPath: csInterface.getSystemPath(SystemPath.USER_DATA)
+            });
+            loadUserScripts();
+        }, 300);
+
+        // ============================================================
+        // 自定义窗口缩放（右下角手柄拖拽 → Adobe 官方 API）
+        // ============================================================
+        (function() {
+            var handle = document.getElementById('resize-handle');
+            var resizing = false;
+            var startX, startY, startW, startH;
+
+            // 从 CSInterface 获取当前面板初始尺寸
+            try {
+                startW = window.innerWidth;
+                startH = window.innerHeight;
+            } catch (e) {
+                startW = 300;
+                startH = 500;
+            }
+
+            handle.addEventListener('mousedown', function(e) {
+                resizing = true;
+                startX = e.screenX;
+                startY = e.screenY;
+                startW = window.innerWidth;
+                startH = window.innerHeight;
+                e.preventDefault();
+                e.stopPropagation();
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!resizing) return;
+                var newW = Math.max(startW + (e.screenX - startX), 200);
+                var newH = Math.max(startH + (e.screenY - startY), 250);
+                try {
+                    csInterface.resizeContent(newW, newH);
+                } catch (ex) {
+                    // 静默
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (resizing) {
+                    resizing = false;
+                    // 拖拽结束后触发一次刷新，确保布局适应新尺寸
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

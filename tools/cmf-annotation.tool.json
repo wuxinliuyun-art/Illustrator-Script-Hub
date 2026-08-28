@@ -1,0 +1,7 @@
+{
+  "id": "cmf-annotation",
+  "title": "CMF 标注",
+  "component": "cmfAnnotation",
+  "script": "scripts/CMF标注线v2.0.jsx",
+  "dataFile": "cmf-annotation.json"
+}
