@@ -33,7 +33,12 @@ Windows users can also run `运行自动安装.cmd`.
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for architecture rules, AI integration keywords and the validation checklist.
 
-## Current Support`r`n`r`nTwo Adobe applications are currently supported: Illustrator and Photoshop.`r`n`r`n## Author
+## Current Support
+
+Two Adobe applications are currently supported: Illustrator and Photoshop.
+
+## Author
 
 Industrial Design Notes
+
 

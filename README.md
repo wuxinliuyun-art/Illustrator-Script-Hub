@@ -33,7 +33,12 @@ Windows 用户也可以运行 `运行自动安装.cmd`。
 
 请阅读 [DEVELOPMENT.md](DEVELOPMENT.md)，其中包含架构约定、AI 对接关键词和验证清单。
 
-## 当前支持`r`n`r`n目前支持两种 Adobe 软件：Illustrator 和 Photoshop。`r`n`r`n## 作者
+## 当前支持
+
+目前支持两种 Adobe 软件：Illustrator 和 Photoshop。
+
+## 作者
 
 工业设计沉思录
+
 
