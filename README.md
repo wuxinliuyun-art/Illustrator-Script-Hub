@@ -10,7 +10,6 @@ Illustrator Script Hub 是一个面向 Adobe Illustrator 的 CEP 脚本管理面
 
 ## 功能
 
-- 面板左侧中英文切换
 - 递归扫描 `.jsx` / `.js` 脚本
 - 拖拽排序和颜色标记
 - 读取脚本头部使用说明

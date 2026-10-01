@@ -1,7 +1,5 @@
 # Business scripts are kept locally and are not published in the public panel repository.
-/scripts/*.jsx
-/scripts/**/*.jsx
-/scripts/*.js
-/scripts/**/*.js
-/scripts/_panel_config.json
+/scripts/
 *.log
+# Local ZCode workspace data
+.zcode/

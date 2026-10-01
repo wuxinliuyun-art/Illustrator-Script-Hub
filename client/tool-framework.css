@@ -15,6 +15,35 @@
 .tool-row label { min-width:58px; color:#bbb; font-size:11px; }
 .tool-input, .tool-select { min-width:0; flex:1; background:#1f1f1f; color:#eee; border:1px solid #555; border-radius:3px; padding:5px; font-size:11px; }
 .tool-number { width:70px; flex:none; }
+.tool-field-label { display:block; margin-bottom:5px; color:#bbb; font-size:11px; }
+.cmf-v15-header { margin:2px 0 10px; padding:12px; border:1px solid #3f5167; border-radius:7px; background:linear-gradient(135deg,#1c2b3c,#252b34 68%); box-shadow:0 5px 14px rgba(0,0,0,.18); }
+.cmf-v15-kicker { margin-bottom:3px; color:#6da9ee; font-size:9px; font-weight:700; letter-spacing:1.4px; }
+.cmf-v15-title { color:#f5f7fa; font-size:17px; font-weight:600; line-height:1.25; }
+.cmf-v15-title span { display:inline-block; margin-left:3px; padding:1px 5px; border:1px solid #527bad; border-radius:9px; color:#8fc2ff; font-size:9px; vertical-align:3px; }
+.cmf-v15-subtitle { margin-top:6px; color:#aeb9c6; font-size:10px; line-height:1.55; }
+.cmf-v15-section { padding:10px; border-color:#454b53; background:#292c31; }
+.cmf-v15-section-title { margin:-1px 0 10px; color:#e8ebef; font-size:12px; font-weight:600; }
+.cmf-v15-section-title span { margin-right:5px; color:#6da9ee; font-size:9px; letter-spacing:.5px; }
+.cmf-v15-text { display:block; width:100%; min-height:106px; margin-bottom:5px; padding:8px; line-height:1.55; resize:vertical; }
+.cmf-v15-help { margin-bottom:1px; color:#7f8995; font-size:9px; line-height:1.45; }
+.cmf-v15-control-row { min-height:32px; margin-bottom:7px; }
+.cmf-v15-control-row:last-child { margin-bottom:0; }
+.cmf-v15-control-row label { min-width:68px; }
+.cmf-v15-number { width:82px; }
+.cmf-v15-unit { min-width:18px; color:#8f98a3; font-size:10px; }
+.cmf-v15-color-row { align-items:flex-start; }
+.cmf-v15-color-control { min-width:0; flex:1; }
+.cmf-v15-color-choices { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:6px; }
+.cmf-v15-color-choice { display:flex; min-width:0!important; align-items:center; gap:3px; padding:4px 7px; border:1px solid #4d535b; border-radius:12px; background:#24272b; color:#c3c9d0!important; cursor:pointer; font-size:10px!important; }
+.cmf-v15-color-choice:hover { border-color:#6d94c2; background:#2d333a; }
+.cmf-v15-color-choice input { width:12px; height:12px; margin:0; accent-color:#1473e6; }
+.cmf-v15-custom-line { display:flex; align-items:center; gap:6px; }
+.cmf-v15-hex { font-family:Consolas,"Courier New",monospace; letter-spacing:.3px; }
+.cmf-v15-hex:disabled { color:#89919a; background:#25282c; opacity:.72; }
+.cmf-v15-swatch { width:24px; height:24px; flex:none; border:1px solid rgba(255,255,255,.28); border-radius:5px; box-shadow:inset 0 0 0 1px rgba(0,0,0,.25); }
+.cmf-v15-swatch.invalid { border-color:#d76161; background:repeating-linear-gradient(135deg,#3a2323,#3a2323 4px,#242424 4px,#242424 8px)!important; }
+.cmf-v15-generate { margin-top:9px; }
+.cmf-v15-primary { width:100%; min-height:34px; font-weight:600; box-shadow:0 3px 9px rgba(20,115,230,.2); }
 .tool-status { white-space:pre-wrap; font-size:10px; color:#aaa; padding:7px; border-radius:4px; background:#1d1d1d; margin-bottom:8px; }
 .tool-status.error { color:#ff8d8d; border:1px solid #7a3333; }
 .tool-status:empty { display:none; }
@@ -43,3 +72,13 @@
 .dict-values { min-height:42px; resize:vertical; }
 .template-item { display:flex; gap:5px; align-items:center; margin-top:5px; }
 @media (max-width: 280px) { .cmf-line { grid-template-columns:1fr; } .cmf-line-actions { justify-content:flex-end; } }
+/* === ⚙ 参数设置整页视图（script-params.js） === */
+.sr-params-title { margin:2px 0 8px; color:#f5f7fa; font-size:14px; font-weight:600; line-height:1.3; }
+.sr-text-block { margin-bottom:8px; }
+.sr-text { display:block; width:100%; min-height:96px; line-height:1.55; resize:vertical; }
+.sr-color-line { display:flex; gap:6px; align-items:center; }
+.sr-hex { width:90px; flex:none; font-family:Consolas,"Courier New",monospace; }
+.sr-hex.invalid { border-color:#d76161; color:#ff8d8d; }
+.sr-swatch { width:24px; height:24px; flex:none; border:1px solid rgba(255,255,255,.28); border-radius:5px; background:#333; box-shadow:inset 0 0 0 1px rgba(0,0,0,.25); }
+.sr-save-bar { margin-top:8px; }
+.sr-save-bar .tool-btn { width:100%; min-height:32px; font-weight:600; }

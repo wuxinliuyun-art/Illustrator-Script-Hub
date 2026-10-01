@@ -41,16 +41,6 @@
             letter-spacing: 1px;
             font-weight: bold;
         }
-        .lang-btn {
-            background: none;
-            border: 1px solid #555;
-            color: #1473E6;
-            cursor: pointer;
-            font-size: 10px;
-            padding: 2px 5px;
-            margin-left: 6px;
-            border-radius: 3px;
-        }
         .refresh-btn {
             background: none;
             border: none;
@@ -138,7 +128,7 @@
         .btn-row .btn:active {
             background-color: #2D2D2D;
         }
-        /* 说明切换小按钮 */
+        /* 说明切换小按钮（当右侧还有 ⚙ 参数按钮时不再是行尾，圆角由 :last-child 决定） */
         .info-btn {
             width: 30px;
             min-width: 30px;
@@ -146,7 +136,7 @@
             color: #999;
             border: 1px solid #4E4E4E;
             border-left: 1px solid #555;
-            border-radius: 0 4px 4px 0;
+            border-radius: 0;
             font-size: 12px;
             cursor: pointer;
             text-align: center;
@@ -161,11 +151,36 @@
             color: #1473E6;
             background-color: #2D2D2D;
         }
+        .btn-row .info-btn:last-child {
+            border-radius: 0 4px 4px 0;
+        }
+        /* 参数设置小按钮（脚本声明了 @param 时出现） */
+        .params-btn {
+            width: 30px;
+            min-width: 30px;
+            background-color: #3E3E3E;
+            color: #999;
+            border: 1px solid #4E4E4E;
+            border-left: 1px solid #555;
+            border-radius: 0 4px 4px 0;
+            font-size: 12px;
+            cursor: pointer;
+            text-align: center;
+            padding: 0;
+            transition: background 0.15s, color 0.15s;
+        }
+        .params-btn:hover {
+            background-color: #4E4E4E;
+            color: #1473E6;
+        }
         /* 按钮行悬浮时统一样式 */
         .btn-row:hover .btn {
             border-color: #1473E6;
         }
         .btn-row:hover .info-btn {
+            border-color: #1473E6;
+        }
+        .btn-row:hover .params-btn {
             border-color: #1473E6;
         }
         /* 展开时按钮下圆角变直角 */
@@ -174,7 +189,13 @@
             border-bottom-color: transparent;
         }
         .script-item.expanded .btn-row .info-btn {
+            border-radius: 0;
+            border-bottom-color: transparent;
+        }
+        .script-item.expanded .btn-row .info-btn:last-child {
             border-radius: 0 4px 0 0;
+        }
+        .script-item.expanded .btn-row .params-btn {
             border-bottom-color: transparent;
         }
         /* 每个按钮下方展开的说明区域 */
@@ -235,6 +256,61 @@
             transform: scale(1.3);
             border-color: #fff;
         }
+        /* === 开关控件（bool 参数） === */
+        .sr-switch {
+            position: relative;
+            display: inline-block;
+            width: 30px;
+            height: 16px;
+            flex: none;
+            cursor: pointer;
+        }
+        .sr-switch input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 0;
+            opacity: 0;
+            margin: 0;
+        }
+        .sr-switch-slider {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3E3E3E;
+            border: 1px solid #555;
+            border-radius: 8px;
+            transition: background-color 0.15s, border-color 0.15s;
+        }
+        .sr-switch-slider::before {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            left: 2px;
+            top: 2px;
+            background-color: #999;
+            border-radius: 50%;
+            transition: transform 0.15s, background-color 0.15s;
+        }
+        .sr-switch input:checked + .sr-switch-slider {
+            background-color: #1473E6;
+            border-color: #1473E6;
+        }
+        .sr-switch input:checked + .sr-switch-slider::before {
+            transform: translateX(14px);
+            background-color: #fff;
+        }
+        /* 参数行里的开关也是 label，覆盖 .tool-row label 的 min-width:58px，防止轨道被撑长 */
+        .tool-row label.sr-switch {
+            min-width: 30px;
+            width: 30px;
+            height: 16px;
+            align-self: center;
+        }
         /* === 自定义缩放手柄（右下角拖拽调整窗口大小） === */
         .resize-handle {
             position: fixed;
@@ -269,7 +345,7 @@
 <body>
 
     <div class="header">
-        <span><button class="lang-btn" id="lang-btn" type="button">中 / EN</button><span class="title"></span></span>
+        <span class="title">脚本管理器</span>
         <span style="display:flex;gap:4px;">
             <button class="refresh-btn" id="folder-btn" title="打开脚本文件夹">📁 文件夹</button>
             <button class="refresh-btn" id="refresh-btn" title="刷新脚本列表">🔄 刷新</button>
@@ -280,6 +356,8 @@
     <div class="tool-view active" id="scripts-view">
         <div class="btn-list" id="button-container"></div>
     </div>
+    <!-- ⚙ 参数设置整页视图（script-params.js 动态构建） -->
+    <div class="tool-view" id="params-view"></div>
     <div id="tool-root"></div>
 
     <!-- 右下角缩放手柄 -->
@@ -300,6 +378,8 @@
     <script src="tool-framework.js"></script>
     <script src="tool-widgets.js"></script>
     <script src="cmf-tool.js"></script>
+    <script src="cmf-v15-tool.js"></script>
+    <script src="script-params.js"></script>
     <script>
         // ============================================================
         // 通用脚本管理器 - 前端扫描引擎 (v2 健壮版)
@@ -313,28 +393,20 @@
             el.innerHTML = '<div class="empty-state" style="color:' + color + ';font-size:10px;white-space:pre-wrap;word-break:break-all;text-align:left;">' + msg + '</div>';
         }
 
-        var fs, path, csInterface, extensionPath, scriptsDir;
-        var panelLanguage = localStorage.getItem('sr_panel_language') || 'zh';
-        var languageText = {
-            zh: {title:'脚本管理器', folder:'📁 文件夹', refresh:'🔄 刷新', folderTitle:'打开脚本文件夹', refreshTitle:'刷新脚本列表', panel:'面板', panelTitle:'打开此 JSX 对应的配置面板', infoTitle:'查看使用说明', empty:'📭 未发现 .jsx 脚本', emptyTip:'请将 .jsx 文件放入 scripts 文件夹（支持子文件夹嵌套）'},
-            en: {title:'SCRIPT HUB', folder:'📁 Folder', refresh:'🔄 Refresh', folderTitle:'Open scripts folder', refreshTitle:'Refresh script list', panel:'Panel', panelTitle:'Open the configuration panel for this JSX', infoTitle:'View usage notes', empty:'📭 No .jsx scripts found', emptyTip:'Put .jsx files into the scripts folder (subfolders supported)'}
-        };
-        function t(key) { return languageText[panelLanguage][key]; }
-        function applyLanguage() {
-            document.querySelector('.title').textContent = t('title');
-            document.getElementById('folder-btn').textContent = t('folder');
-            document.getElementById('folder-btn').title = t('folderTitle');
-            document.getElementById('refresh-btn').textContent = t('refresh');
-            document.getElementById('refresh-btn').title = t('refreshTitle');
-            document.getElementById('lang-btn').textContent = panelLanguage === 'zh' ? '中 / EN' : 'EN / 中';
+        // ---- 宿主工具通道返回值处理：仅当返回合法 {"ok":false} 时提示（普通脚本无返回契约，静默忽略） ----
+        function showHostError(result) {
+            var parsed;
+            try {
+                parsed = JSON.parse(result);
+            } catch (e) {
+                return;
+            }
+            if (parsed && parsed.ok === false) {
+                alert('⚠️ 脚本执行失败\n\n' + (parsed.message || '未知错误'));
+            }
         }
-        document.getElementById('lang-btn').addEventListener('click', function () {
-            panelLanguage = panelLanguage === 'zh' ? 'en' : 'zh';
-            localStorage.setItem('sr_panel_language', panelLanguage);
-            applyLanguage();
-            loadUserScripts();
-        });
-        applyLanguage();
+
+        var fs, path, csInterface, extensionPath, scriptsDir;
         try {
             fs = require('fs');
             path = require('path');
@@ -412,45 +484,65 @@
         }
 
         // ---- 配置文件读写（保存排序和颜色） ----
-        // 优先用 localStorage（CEP 内置的 Chromium 持久存储，刷新不丢），
-        // 同步写入 scripts/_panel_config.json 作为备份（跨插件版本保留）。
+        // 主存储：CEP 用户数据目录 panel-config.json（用户目录不会被插件更新覆盖，
+        // 且不依赖 localStorage——CEP 的 localStorage 在部分环境重启后会丢数据）。
+        // 兼容读取旧版位置 scripts/_panel_config.json 与旧 localStorage 键，读到后随下次保存并入新文件。
         var CONFIG_KEY = 'sr_panel_config';
-        var configPath = path.join(scriptsDir, '_panel_config.json');
+        var configPath = '';
+        try {
+            configPath = path.join(csInterface.getSystemPath(SystemPath.USER_DATA), 'IndustrialDesignMeditation', 'ScriptRunnerAI', 'panel-config.json');
+        } catch (e) {
+            configPath = path.join(scriptsDir, '_panel_config.json');
+        }
+
+        function ensureUserDir(dir) {
+            var parent;
+            if (fs.existsSync(dir)) return;
+            parent = path.dirname(dir);
+            if (parent && parent !== dir) ensureUserDir(parent);
+            try { fs.mkdirSync(dir); } catch (e) {}
+        }
+
+        // 从一个配置对象并入缺失的字段（先到先得，优先级随来源顺序递减）
+        function mergeConfig(cfg, parsed) {
+            var key;
+            if (!parsed) return;
+            if (parsed.order && parsed.order.length > 0 && cfg.order.length === 0) {
+                cfg.order = parsed.order;
+            }
+            if (parsed.colors) {
+                for (key in parsed.colors) {
+                    if (!cfg.colors[key]) cfg.colors[key] = parsed.colors[key];
+                }
+            }
+        }
 
         function loadConfig() {
             var cfg = { order: [], colors: {} };
-            // 1) 优先读 localStorage
-            try {
-                var raw = localStorage.getItem(CONFIG_KEY);
-                if (raw) {
-                    var parsed = JSON.parse(raw);
-                    if (parsed.order) cfg.order = parsed.order;
-                    if (parsed.colors) cfg.colors = parsed.colors;
-                }
-            } catch (e) {}
-            // 2) 如果 localStorage 为空，回退读文件
-            if (cfg.order.length === 0 && Object.keys(cfg.colors).length === 0) {
+            var sources = [configPath, path.join(scriptsDir, '_panel_config.json')];
+            var i, raw, parsed;
+            for (i = 0; i < sources.length; i++) {
                 try {
-                    if (fs.existsSync(configPath)) {
-                        var fileRaw = fs.readFileSync(configPath, 'utf8');
-                        var fileCfg = JSON.parse(fileRaw);
-                        if (fileCfg.order) cfg.order = fileCfg.order;
-                        if (fileCfg.colors) cfg.colors = fileCfg.colors;
-                    }
+                    if (!fs.existsSync(sources[i])) continue;
+                    mergeConfig(cfg, JSON.parse(fs.readFileSync(sources[i], 'utf8')));
                 } catch (e) {}
             }
+            // 旧版 localStorage 数据兜底迁移
+            try {
+                raw = localStorage.getItem(CONFIG_KEY);
+                if (raw) mergeConfig(cfg, JSON.parse(raw));
+            } catch (e2) {}
             return cfg;
         }
 
         function saveConfig(config) {
-            // 主存储：localStorage（最可靠）
             try {
-                localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-            } catch (e) {}
-            // 备份：写入文件
-            try {
+                ensureUserDir(path.dirname(configPath));
+                if (fs.existsSync(configPath)) fs.writeFileSync(configPath + '.bak', fs.readFileSync(configPath));
                 fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
-            } catch (e) {}
+            } catch (e) {
+                console.warn('[ScriptRunner] 面板配置写入失败: ' + e);
+            }
         }
 
         // 按配置排序：先按 order 排，未在 order 中的放最后
@@ -607,7 +699,7 @@
 
             // === 第 2 关：没有脚本文件时给出提示 ===
             if (scriptFiles.length === 0) {
-                container.innerHTML = '<div class="empty-state">' + t('empty') + '<br><span style="font-size:9px;color:#555;">' + t('emptyTip') + '</span></div>';
+                container.innerHTML = '<div class="empty-state">📭 未发现 .jsx 脚本<br><span style="font-size:9px;color:#555;">请将 .jsx 文件放入 scripts 文件夹（支持子文件夹嵌套）</span></div>';
                 return;
             }
 
@@ -616,10 +708,33 @@
             scriptFiles = sortByConfig(scriptFiles, config);
 
             // === 第 3 关：为每个脚本生成【颜色条 + 按钮行 + 下方说明】 ===
+            // 统计每个子文件夹内的脚本数量：文件夹里只有一个脚本时，按钮直接显示文件夹名。
+            var folderScriptCount = {};
+            scriptFiles.forEach(function(f) {
+                var folderEnd = Math.max(f.relPath.lastIndexOf('/'), f.relPath.lastIndexOf('\\'));
+                if (folderEnd > -1) {
+                    var folderKey = f.relPath.substring(0, folderEnd);
+                    folderScriptCount[folderKey] = (folderScriptCount[folderKey] || 0) + 1;
+                }
+            });
             scriptFiles.forEach(function(item) {
-                // 显示名处理
+                // 显示名处理：子文件夹内唯一的脚本只显示文件夹名，其余保留“文件夹 ▸ 文件名”
                 var relWithoutExt = item.relPath.replace(/\.(jsx|js)$/i, '');
-                var displayName = relWithoutExt.replace(/[\\\/]/g, ' ▸ ');
+                var fullDisplayName = relWithoutExt.replace(/[\\\/]/g, ' ▸ ');
+                var displayName = fullDisplayName;
+                var folderEnd = Math.max(item.relPath.lastIndexOf('/'), item.relPath.lastIndexOf('\\'));
+                if (folderEnd > -1 && folderScriptCount[item.relPath.substring(0, folderEnd)] === 1) {
+                    displayName = item.relPath.substring(0, folderEnd).replace(/[\\\/]/g, ' ▸ ');
+                }
+
+                // --- 解析 @param 参数声明（⚙ 参数按钮机制），并从说明文本中过滤掉声明行 ---
+                item.params = [];
+                if (window.ScriptRunnerParams) {
+                    var parsed = window.ScriptRunnerParams.parseDesc(item.desc);
+                    item.desc = parsed.desc;
+                    item.params = parsed.params;
+                    window.ScriptRunnerParams.registerDeclarations(item.relPath, item.params);
+                }
 
                 // --- 外层容器（可拖拽） ---
                 var wrapper = document.createElement('div');
@@ -652,12 +767,21 @@
                 var btn = document.createElement('button');
                 btn.className = 'btn';
                 btn.innerText = displayName;
-                btn.title = '点击执行: ' + displayName + ' | 拖拽可排序';
+                btn.title = '点击执行: ' + fullDisplayName + ' | 拖拽可排序';
                 // 子文件夹内的脚本保留左侧彩色边框（颜色条替代了它）
                 if (relWithoutExt.indexOf('/') !== -1 || relWithoutExt.indexOf('\\') !== -1) {
                     btn.style.fontSize = '11px';
                 }
+                // --- 带参数声明的脚本运行：经宿主工具通道注入当前生效值 ---
+                function runScriptEntry() {
+                    var fullPath = item.absPath.replace(/\\/g, '/');
+                    csInterface.evalScript('runDynamicJSXTool(' + JSON.stringify(fullPath) + ',' + JSON.stringify(window.ScriptRunnerParams.getPayloadEncoded(item.relPath)) + ')', showHostError);
+                }
                 btn.addEventListener('click', function() {
+                    if (item.params.length > 0 && window.ScriptRunnerParams && window.ScriptRunnerParams.hasParams(item.relPath)) {
+                        runScriptEntry();
+                        return;
+                    }
                     var fullPath = item.absPath.replace(/\\/g, '/');
                     csInterface.evalScript('runDynamicJSXFile(' + JSON.stringify(fullPath) + ')');
                 });
@@ -667,8 +791,8 @@
                 if (window.ScriptRunnerTools && window.ScriptRunnerTools.handlesScript(item.relPath)) {
                     panelBtn = document.createElement('button');
                     panelBtn.className = 'panel-btn';
-                    panelBtn.innerText = t('panel');
-                    panelBtn.title = t('panelTitle');
+                    panelBtn.innerText = '面板';
+                    panelBtn.title = '打开此 JSX 对应的配置面板';
                     panelBtn.addEventListener('click', function(e) {
                         e.stopPropagation();
                         window.ScriptRunnerTools.openByScript(item.relPath);
@@ -679,9 +803,22 @@
                 var infoBtn = document.createElement('button');
                 infoBtn.className = 'info-btn';
                 infoBtn.innerText = 'ℹ';
-                infoBtn.title = t('infoTitle');
+                infoBtn.title = '查看使用说明';
                 if (item.desc) {
                     infoBtn.style.color = '#AAA';
+                }
+
+                // --- 参数设置小按钮（声明了 @param 且未注册工具面板的脚本显示） ---
+                var paramsBtn = null;
+                if (item.params.length > 0 && !wrapper.classList.contains('has-tool') && window.ScriptRunnerParams) {
+                    paramsBtn = document.createElement('button');
+                    paramsBtn.className = 'params-btn';
+                    paramsBtn.innerText = '⚙';
+                    paramsBtn.title = '参数设置：修改脚本运行参数（保存后一键运行即生效）';
+                    paramsBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        window.ScriptRunnerParams.openPage(item.relPath, displayName);
+                    });
                 }
 
                 // --- 下方说明区 ---
@@ -710,6 +847,7 @@
                 btnRow.appendChild(btn);
                 if (panelBtn) btnRow.appendChild(panelBtn);
                 btnRow.appendChild(infoBtn);
+                if (paramsBtn) btnRow.appendChild(paramsBtn);
                 wrapper.appendChild(btnRow);
                 wrapper.appendChild(descDiv);
                 container.appendChild(wrapper);
@@ -740,6 +878,14 @@
                 extensionPath: extensionPath,
                 userDataPath: csInterface.getSystemPath(SystemPath.USER_DATA)
             });
+            if (window.ScriptRunnerParams) {
+                ScriptRunnerParams.init({
+                    fs: fs,
+                    path: path,
+                    csInterface: csInterface,
+                    userDataPath: csInterface.getSystemPath(SystemPath.USER_DATA)
+                });
+            }
             loadUserScripts();
         }, 300);
 
